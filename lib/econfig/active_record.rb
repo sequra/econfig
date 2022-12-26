@@ -37,7 +37,7 @@ module Econfig
 
     def set(key, value)
       option = Option.where(:key => key).first_or_initialize
-      option.update_attributes!(:value, value)
+      option.update_attribute(:value, value)
     rescue ::ActiveRecord::StatementInvalid
       warn MISSING_TABLE_WARNING
     end

@@ -33,10 +33,18 @@ module Econfig
 
       @mutex.synchronize do
         @options ||= if File.exist?(path)
-          ::YAML.load(::ERB.new(File.read(path)).result)[Econfig.env] || {}
+          load_yaml(::ERB.new(File.read(path)).result)[Econfig.env] || {}
         else
           {}
         end
+      end
+    end
+
+    def load_yaml(src)
+      if Psych::VERSION > "4.0"
+        ::YAML.safe_load(src, permitted_classes: [Symbol], aliases: true)
+      else
+        ::YAML.load(src)
       end
     end
   end

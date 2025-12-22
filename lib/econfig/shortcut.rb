@@ -1,7 +1,7 @@
 module Econfig
   module Shortcut
-    def config
-      Econfig.instance
-    end
+    class_attribute :config
+
+    self.config = Econfig.instance
   end
 end

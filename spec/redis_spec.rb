@@ -2,51 +2,48 @@ require "redis"
 require "econfig/redis"
 
 describe Econfig::Redis do
-  let(:redis) { Redis.new(:databse => "econfig_test") }
+  let(:redis) { double(Redis) }
   let(:backend) { Econfig::Redis.new(redis) }
-  after do |example|
-    redis.flushdb
-  end
 
   describe "#keys" do
     it "returns a list of set keys" do
-      backend.set("foo", "123")
-      backend.set("bar", "664")
-      backend.keys.should eq(Set.new(["foo", "bar"]))
+      allow(redis)
+        .to receive(:keys)
+        .and_return(["foo", "bar"])
+
+      backend.keys.should(eq(Set.new(["foo", "bar"])))
     end
   end
 
   describe "#has_key?" do
-    it "returns true if key exists" do
-      backend.set("foo", "bar")
-      backend.has_key?("foo").should eq(true)
-    end
+    it "returns the value from the redis instance" do
+      allow(redis)
+        .to receive(:exists)
+        .with("foo")
+        .and_return(:a_nice_value)
 
-    it "returns false if key is not set" do
-      backend.has_key?("foo").should eq(false)
+      backend.has_key?("foo").should(eq(:a_nice_value))
     end
   end
 
   describe "#get" do
-    it "fetches a previously set option" do
-      backend.set("foo", "bar")
-      backend.get("foo").should == "bar"
-    end
+    it "returns the value from the redis instance" do
+      allow(redis)
+        .to receive(:get)
+        .with("foobarfoo")
+        .and_return(:a_not_so_nice_value)
 
-    it "fetches a previously persisted option" do
-      redis.set("foo", "bar")
-      backend.get("foo").should == "bar"
-    end
-
-    it "returns nil if option is not set" do
-      backend.get("foo").should be_nil
+      backend.get("foobarfoo").should(eq(:a_not_so_nice_value))
     end
   end
 
   describe "#set" do
-    it "persists keys to database" do
-      backend.set("foo", "bar")
-      redis.get("foo").should == "bar"
+    it "sets the value in the redis instance" do
+      expect(redis)
+        .to receive(:set)
+        .with("a_beautiful_key", "a_nice_value")
+
+      backend.set("a_beautiful_key", "a_nice_value")
     end
   end
 end
